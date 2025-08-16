@@ -185,9 +185,8 @@ func summonWindow(_ e: WindowEntry) throws {
         return 
     }
     
-    // Move the window to current workspace and focus it
-    _ = try aero(["move-node-to-workspace", "--window-id", String(e.id), currentWorkspace])
-    _ = try aero(["focus", "--window-id", String(e.id)])
+    // Move the window to current workspace and focus it automatically
+    _ = try aero(["move-node-to-workspace", "--focus-follows-window", "--window-id", String(e.id), currentWorkspace])
 }
 
 // MARK: - View model
