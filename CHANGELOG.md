@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/darksworm/aeroswitch/compare/v1.2.0...v1.2.1) (2025-08-16)
+
+
+### Bug Fixes
+
+* **release:** use release-please version output in publish job ([f8f4072](https://github.com/darksworm/aeroswitch/commit/f8f40723af3b006aa716e9008bff00febcab2beb))
+
 ## [1.2.0](https://github.com/darksworm/aeroswitch/compare/v1.1.0...v1.2.0) (2025-08-16)
 
 
