@@ -1,5 +1,9 @@
+# DISABLED: This workflow is for Homebrew tap automation
 # This file should be placed in your homebrew-aeroswitch repository
-# at .github/workflows/update-formula.yml
+# at .github/workflows/update-formula.yml when ready for Homebrew distribution
+# 
+# To enable: rename this file to remove .disabled extension and 
+# uncomment the Homebrew steps in release-please.yml
 
 name: Update Formula
 

@@ -157,17 +157,17 @@ Right-click the system tray icon for options:
 
 ## 🔧 Advanced Installation
 
-### Homebrew (For Distribution)
+### Homebrew (Future Distribution)
 
-If you're planning to distribute AeroSwitch or want automatic updates:
+Homebrew distribution is planned for the future. For now, use manual installation above.
 
 ```bash
-# Once the tap is set up
+# Coming soon - not yet available
 brew tap yourusername/aeroswitch
 brew install aeroswitch
 ```
 
-See [HOMEBREW_TAP.md](HOMEBREW_TAP.md) for detailed setup instructions.
+See [HOMEBREW_TAP.md](HOMEBREW_TAP.md) for future tap setup instructions.
 
 ### Manual Build Options
 

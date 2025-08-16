@@ -24,7 +24,7 @@ When you merge the release PR created by release-please:
 2. **Build**: Swift project is built in release mode
 3. **Archive**: Release archive is created with checksums
 4. **Upload**: Archive and checksums are uploaded to the release
-5. **Homebrew Update**: Formula in tap repository is automatically updated
+5. **Ready for Manual Distribution**: Users can download and install
 
 ## 🛠️ Workflows
 
@@ -55,16 +55,17 @@ In your main repository settings:
    - Personal Access Token with `repo` permissions
    - Used by release-please to create PRs and releases
 
-2. **`HOMEBREW_TAP_TOKEN`**
+2. **`HOMEBREW_TAP_TOKEN`** *(disabled for now)*
    - Personal Access Token with `repo` permissions  
-   - Used to update the Homebrew tap repository
+   - Used to update the Homebrew tap repository (when enabled)
    - Must have access to `yourusername/homebrew-aeroswitch`
 
-### Homebrew Tap Repository
+### Homebrew Tap Repository *(future feature)*
 
 1. Create `yourusername/homebrew-aeroswitch` repository
 2. Add the formula file to `Formula/aeroswitch.rb`
 3. Add the update workflow to `.github/workflows/update-formula.yml`
+4. Uncomment Homebrew steps in `release-please.yml`
 
 ## 🚀 Making a Release
 

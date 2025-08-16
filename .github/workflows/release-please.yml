@@ -52,25 +52,26 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
-      - name: Get release info
-        id: release_info
-        run: |
-          VERSION=$(echo ${{ github.ref_name }} | sed 's/^v//')
-          ARCHIVE_PATH="releases/aeroswitch-${VERSION}-macos.tar.gz"
-          SHA256=$(cat "releases/aeroswitch-${VERSION}-macos.tar.gz.sha256" | cut -d' ' -f1)
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "archive_url=https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/aeroswitch-${VERSION}-macos.tar.gz" >> $GITHUB_OUTPUT
-          echo "sha256=${SHA256}" >> $GITHUB_OUTPUT
-      
-      - name: Update Homebrew formula
-        uses: peter-evans/repository-dispatch@v3
-        with:
-          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
-          repository: ${{ github.repository_owner }}/homebrew-aeroswitch
-          event-type: update-formula
-          client-payload: |
-            {
-              "version": "${{ steps.release_info.outputs.version }}",
-              "archive_url": "${{ steps.release_info.outputs.archive_url }}",
-              "sha256": "${{ steps.release_info.outputs.sha256 }}"
-            }
+      # TODO: Re-enable Homebrew automation when ready for tap distribution
+      # - name: Get release info
+      #   id: release_info
+      #   run: |
+      #     VERSION=$(echo ${{ github.ref_name }} | sed 's/^v//')
+      #     ARCHIVE_PATH="releases/aeroswitch-${VERSION}-macos.tar.gz"
+      #     SHA256=$(cat "releases/aeroswitch-${VERSION}-macos.tar.gz.sha256" | cut -d' ' -f1)
+      #     echo "version=${VERSION}" >> $GITHUB_OUTPUT
+      #     echo "archive_url=https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/aeroswitch-${VERSION}-macos.tar.gz" >> $GITHUB_OUTPUT
+      #     echo "sha256=${SHA256}" >> $GITHUB_OUTPUT
+      # 
+      # - name: Update Homebrew formula
+      #   uses: peter-evans/repository-dispatch@v3
+      #   with:
+      #     token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+      #     repository: ${{ github.repository_owner }}/homebrew-aeroswitch
+      #     event-type: update-formula
+      #     client-payload: |
+      #       {
+      #         "version": "${{ steps.release_info.outputs.version }}",
+      #         "archive_url": "${{ steps.release_info.outputs.archive_url }}",
+      #         "sha256": "${{ steps.release_info.outputs.sha256 }}"
+      #       }
