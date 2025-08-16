@@ -405,6 +405,12 @@ struct VisualEffectView: NSViewRepresentable {
 class KeyableWindow: NSWindow {
     override var canBecomeKey: Bool { return true }
     override var canBecomeMain: Bool { return true }
+    
+    override func resignKey() {
+        super.resignKey()
+        // Post notification to hide the window when it loses focus
+        NotificationCenter.default.post(name: NSNotification.Name("HideSwitcher"), object: nil)
+    }
 }
 
 // MARK: - Menu Bar App
