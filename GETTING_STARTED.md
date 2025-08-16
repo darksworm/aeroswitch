@@ -4,19 +4,26 @@
 
 ## ⚡ 3-Minute Setup
 
-### 1. Download & Install (30 seconds)
+### 1. Install with Homebrew (30 seconds)
 
 ```bash
+# Add the tap and install
+brew tap darksworm/aerospace
+brew install aeroswitch
+
+# Test it works
+aeroswitch --version
+```
+
+**Alternative: Manual Install**
+```bash
 # Download latest release
-curl -L https://github.com/yourusername/aeroswitch/releases/latest/download/aeroswitch-1.0.0-macos.tar.gz -o aeroswitch.tar.gz
+curl -L https://github.com/darksworm/aeroswitch/releases/latest/download/aeroswitch-1.0.0-macos.tar.gz -o aeroswitch.tar.gz
 
 # Extract and install
 tar -xzf aeroswitch.tar.gz
 sudo mv aeroswitch /usr/local/bin/
 chmod +x /usr/local/bin/aeroswitch
-
-# Test it works
-aeroswitch --version
 ```
 
 ### 2. Configure AeroSpace (1 minute)
@@ -27,11 +34,11 @@ Add these lines to your `~/.aerospace.toml`:
 # Auto-start AeroSwitch with AeroSpace
 [[on-window-detected]]
 if.app-id = 'com.apple.loginwindow'
-run = '/usr/local/bin/aeroswitch --background'
+run = '/opt/homebrew/bin/aeroswitch --background'
 
-# Bind Cmd+Tab to open window switcher
+# Bind Cmd+Tab to open window switcher  
 [mode.main.binding]
-cmd-tab = 'exec-and-forget /usr/local/bin/aeroswitch --activate'
+cmd-tab = 'exec-and-forget /opt/homebrew/bin/aeroswitch --activate'
 ```
 
 ### 3. Restart AeroSpace (10 seconds)
@@ -56,11 +63,11 @@ Don't want to override Cmd+Tab? Use these instead:
 ```toml
 # Option 1: Alt+Space
 [mode.main.binding]
-alt-space = 'exec-and-forget /usr/local/bin/aeroswitch --activate'
+alt-space = 'exec-and-forget /opt/homebrew/bin/aeroswitch --activate'
 
 # Option 2: Cmd+Shift+Tab  
 [mode.main.binding]
-cmd-shift-tab = 'exec-and-forget /usr/local/bin/aeroswitch --activate'
+cmd-shift-tab = 'exec-and-forget /opt/homebrew/bin/aeroswitch --activate'
 ```
 
 ## 🚀 Pro Tips
@@ -69,14 +76,14 @@ cmd-shift-tab = 'exec-and-forget /usr/local/bin/aeroswitch --activate'
 ```toml
 [[on-window-detected]]
 if.app-id = 'com.apple.loginwindow'
-run = '/usr/local/bin/aeroswitch --background --summon'
+run = '/opt/homebrew/bin/aeroswitch --background --summon'
 ```
 
 **Both Modes**: Have separate hotkeys for each strategy:
 ```toml
 [mode.main.binding]
-cmd-tab = 'exec-and-forget /usr/local/bin/aeroswitch --activate'        # Go to window
-cmd-shift-tab = 'exec-and-forget /usr/local/bin/aeroswitch --activate --summon'  # Bring window here
+cmd-tab = 'exec-and-forget /opt/homebrew/bin/aeroswitch --activate'        # Go to window
+cmd-shift-tab = 'exec-and-forget /opt/homebrew/bin/aeroswitch --activate --summon'  # Bring window here
 ```
 
 ## ❓ Problems?
@@ -92,7 +99,7 @@ aeroswitch --background
 
 **AeroSpace doesn't start AeroSwitch?**
 - Make sure you restarted AeroSpace after config changes
-- Check the file path in your config matches: `/usr/local/bin/aeroswitch`
+- Check the file path in your config matches: `/opt/homebrew/bin/aeroswitch` (or `/usr/local/bin/aeroswitch` if manually installed)
 
 **Want to try without Cmd+Tab override?**
 - Test with: `aeroswitch --activate` in terminal first
@@ -100,4 +107,4 @@ aeroswitch --background
 
 ---
 
-**Need more help?** Check the full [README.md](README.md) or create an [issue](https://github.com/yourusername/aeroswitch/issues).
+**Need more help?** Check the full [README.md](README.md) or create an [issue](https://github.com/darksworm/aeroswitch/issues).

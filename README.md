@@ -39,10 +39,20 @@ The window switcher displays a clean, searchable list of all windows across work
 
 ### Step 1: Get AeroSwitch
 
-#### Option A: Download Pre-built Binary (Recommended)
+#### Option A: Homebrew (Recommended)
+
+```bash
+# Add the tap
+brew tap darksworm/aerospace
+
+# Install AeroSwitch
+brew install aeroswitch
+```
+
+#### Option B: Download Pre-built Binary
 
 1. **Download the latest release:**
-   - Go to [Releases](https://github.com/yourusername/aeroswitch/releases)
+   - Go to [Releases](https://github.com/darksworm/aeroswitch/releases)
    - Download `aeroswitch-1.0.0-macos.tar.gz`
 
 2. **Extract and install:**
@@ -52,10 +62,10 @@ The window switcher displays a clean, searchable list of all windows across work
    chmod +x /usr/local/bin/aeroswitch
    ```
 
-#### Option B: Build from Source
+#### Option C: Build from Source
 
 ```bash
-git clone https://github.com/yourusername/aeroswitch.git
+git clone https://github.com/darksworm/aeroswitch.git
 cd aeroswitch
 make release
 sudo make install
@@ -69,12 +79,14 @@ Add AeroSwitch to your AeroSpace configuration (`~/.aerospace.toml`):
 # Start AeroSwitch as a background service
 [[on-window-detected]]
 if.app-id = 'com.apple.loginwindow'
-run = '/usr/local/bin/aeroswitch --background'
+run = '/opt/homebrew/bin/aeroswitch --background'
 
 # Bind a hotkey to summon the window switcher
 [mode.main.binding]
-cmd-tab = 'exec-and-forget /usr/local/bin/aeroswitch --activate'
+cmd-tab = 'exec-and-forget /opt/homebrew/bin/aeroswitch --activate'
 ```
+
+> **Note**: If you installed manually instead of Homebrew, use `/usr/local/bin/aeroswitch` in the paths above.
 
 ### Step 3: Start Using
 
@@ -94,9 +106,9 @@ If you prefer to keep macOS native Cmd+Tab:
 ```toml
 # Use Alt+Space or Cmd+Shift+Tab instead
 [mode.main.binding]
-alt-space = 'exec-and-forget /usr/local/bin/aeroswitch --activate'
+alt-space = 'exec-and-forget /opt/homebrew/bin/aeroswitch --activate'
 # or
-cmd-shift-tab = 'exec-and-forget /usr/local/bin/aeroswitch --activate'
+cmd-shift-tab = 'exec-and-forget /opt/homebrew/bin/aeroswitch --activate'
 ```
 
 #### Summon Mode (Bring Windows to Current Workspace)
@@ -104,11 +116,11 @@ cmd-shift-tab = 'exec-and-forget /usr/local/bin/aeroswitch --activate'
 # Start with summon mode
 [[on-window-detected]]
 if.app-id = 'com.apple.loginwindow'
-run = '/usr/local/bin/aeroswitch --background --summon'
+run = '/opt/homebrew/bin/aeroswitch --background --summon'
 
 # All windows will be brought to your current workspace
 [mode.main.binding]
-cmd-tab = 'exec-and-forget /usr/local/bin/aeroswitch --activate'
+cmd-tab = 'exec-and-forget /opt/homebrew/bin/aeroswitch --activate'
 ```
 
 #### Both Focus and Summon Modes
@@ -116,13 +128,13 @@ cmd-tab = 'exec-and-forget /usr/local/bin/aeroswitch --activate'
 # Default background service
 [[on-window-detected]]
 if.app-id = 'com.apple.loginwindow'
-run = '/usr/local/bin/aeroswitch --background'
+run = '/opt/homebrew/bin/aeroswitch --background'
 
 [mode.main.binding]
 # Focus mode: go to window's workspace
-cmd-tab = 'exec-and-forget /usr/local/bin/aeroswitch --activate'
+cmd-tab = 'exec-and-forget /opt/homebrew/bin/aeroswitch --activate'
 # Summon mode: bring window here
-cmd-shift-tab = 'exec-and-forget /usr/local/bin/aeroswitch --activate --summon'
+cmd-shift-tab = 'exec-and-forget /opt/homebrew/bin/aeroswitch --activate --summon'
 ```
 
 ### Usage
