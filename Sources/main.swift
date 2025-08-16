@@ -485,6 +485,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         switcherWindow?.acceptsMouseMovedEvents = true
         switcherWindow?.center()
         
+        // Make window background transparent and add rounded corners
+        switcherWindow?.backgroundColor = NSColor.clear
+        switcherWindow?.isOpaque = false
+        switcherWindow?.hasShadow = true
+        if let contentView = switcherWindow?.contentView {
+            contentView.wantsLayer = true
+            contentView.layer?.cornerRadius = 16
+            contentView.layer?.masksToBounds = true
+        }
+        
         // Listen for hide requests
         NotificationCenter.default.addObserver(
             self,
