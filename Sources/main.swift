@@ -496,6 +496,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         switcherWindow?.backgroundColor = NSColor.clear
         switcherWindow?.isOpaque = false
         switcherWindow?.hasShadow = true
+        switcherWindow?.alphaValue = 0.95
         if let contentView = switcherWindow?.contentView {
             contentView.wantsLayer = true
             contentView.layer?.cornerRadius = 16
