@@ -354,6 +354,7 @@ struct ContentView: View {
             }
             .id(listID)
             .frame(width: 680, height: 380)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
             .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
                 DispatchQueue.main.async {
                     searchFocused = true
