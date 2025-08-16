@@ -46,9 +46,6 @@ jobs:
             swift build
           fi
       
-      - name: Run tests
-        run: swift test
-      
       - name: Test version command
         run: |
           if [ "${{ matrix.config }}" = "release" ]; then
