@@ -147,19 +147,30 @@ func getAppIcon(for appName: String) -> NSImage? {
     return NSImage(systemSymbolName: "app.fill", accessibilityDescription: "App")
 }
 
-func listWindows() throws -> [WindowEntry] {
+@MainActor
+func listWindows(vm: VM) async throws -> [WindowEntry] {
     let fmt = "%{window-id}%{tab}%{workspace}%{tab}%{monitor-id}%{tab}%{app-name}%{tab}%{window-title}%{newline}"
     let raw = try aero(["list-windows", "--all", "--format", fmt])
     return raw.split(separator: "\n").compactMap { line in
         let parts = line.split(separator: "\t", maxSplits: 4, omittingEmptySubsequences: false)
         guard parts.count == 5, let id = Int(parts[0]) else { return nil }
         let appName = String(parts[3])
+        if let icon = vm.iconCache[appName] {
+            return WindowEntry(id: id,
+                               workspace: String(parts[1]),
+                               monitor: String(parts[2]),
+                               app: appName,
+                               title: String(parts[4]),
+                               icon: icon)
+        }
+        let icon = getAppIcon(for: appName)
+        vm.iconCache[appName] = icon
         return WindowEntry(id: id,
                            workspace: String(parts[1]),
                            monitor: String(parts[2]),
                            app: appName,
                            title: String(parts[4]),
-                           icon: getAppIcon(for: appName))
+                           icon: icon)
     }
 }
 
@@ -201,13 +212,16 @@ func summonWindow(_ e: WindowEntry) throws {
     private var activationTimer: Timer?
     private var statusItem: NSStatusItem?
     private var keyEventMonitor: Any?
+    fileprivate var iconCache: [String: NSImage] = [:]
 
     init(isBackgroundMode: Bool = true) {
         if isBackgroundMode {
             setupSystemTray()
             startActivationMonitoring()
         }
-        reload()
+        Task {
+            await reload()
+        }
     }
     
     private func findAppIcon() -> String? {
@@ -320,8 +334,8 @@ func summonWindow(_ e: WindowEntry) throws {
         }
     }
     
-    func showWindow() {
-        reload()
+    func showWindow() async {
+        await reload()
         query = ""
         isVisible = true
         // Reset selection to first item to ensure proper scroll position
@@ -367,9 +381,10 @@ func summonWindow(_ e: WindowEntry) throws {
         }
     }
 
-    func reload() {
+    func reload() async {
+        iconCache = [:]
         do {
-            all = try listWindows()
+            all = try await listWindows(vm: self)
             applyFilter()
         } catch {
             self.error = error.localizedDescription
@@ -631,7 +646,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             createSwitcherWindow(vm: vm)
         }
         
-        vm.showWindow()
+        Task {
+            await vm.showWindow()
+        }
         switcherWindow?.makeKeyAndOrderFront(nil)
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
