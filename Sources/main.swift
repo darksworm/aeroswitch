@@ -2,12 +2,17 @@ import SwiftUI
 import AppKit
 import Foundation
 
+// MARK: - Version Info
+
+let AEROSWITCH_VERSION = "1.0.0"
+
 // MARK: - CLI Arguments
 
 enum AppMode {
     case background(WorkspaceStrategy)
     case activate(WorkspaceStrategy)
     case help
+    case version
 }
 
 func parseArguments() -> AppMode {
@@ -15,7 +20,9 @@ func parseArguments() -> AppMode {
     let summon = args.contains("--summon")
     let strategy: WorkspaceStrategy = summon ? .summon : .focus
     
-    if args.contains("--help") || args.contains("-h") {
+    if args.contains("--version") || args.contains("-v") {
+        return .version
+    } else if args.contains("--help") || args.contains("-h") {
         return .help
     } else if args.contains("--background") {
         return .background(strategy)
@@ -27,9 +34,19 @@ func parseArguments() -> AppMode {
     }
 }
 
+func printVersion() {
+    print("""
+    AeroSwitch v\(AEROSWITCH_VERSION)
+    Copyright (C) 2025 Ilmars Janis Bluzmanis
+    
+    This is free software; see the source for copying conditions.
+    There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+    """)
+}
+
 func printHelp() {
     print("""
-    AeroSwitch - Window switcher for AeroSpace
+    AeroSwitch v\(AEROSWITCH_VERSION) - Window switcher for AeroSpace
     
     Usage:
         aeroswitch [OPTIONS]
@@ -38,6 +55,7 @@ func printHelp() {
         --background    Start as background helper process
         --activate      Activate existing helper process
         --summon        Use summon-workspace instead of workspace switching
+        --version, -v   Show version information
         --help, -h      Show this help message
     
     Default behavior:
@@ -522,6 +540,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let mode = parseArguments()
         
         switch mode {
+        case .version:
+            printVersion()
+            exit(0)
+            
         case .help:
             printHelp()
             exit(0)

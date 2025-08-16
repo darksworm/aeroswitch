@@ -1,0 +1,68 @@
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+name: Build and Test
+
+jobs:
+  build:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        config: [debug, release]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+      
+      - name: Cache Swift dependencies
+        uses: actions/cache@v4
+        with:
+          path: .build
+          key: ${{ runner.os }}-swift-${{ hashFiles('Package.swift') }}
+          restore-keys: |
+            ${{ runner.os }}-swift-
+      
+      - name: Build project (${{ matrix.config }})
+        run: |
+          if [ "${{ matrix.config }}" = "release" ]; then
+            swift build -c release
+          else
+            swift build
+          fi
+      
+      - name: Run tests
+        run: swift test
+      
+      - name: Test version command
+        run: |
+          if [ "${{ matrix.config }}" = "release" ]; then
+            ./.build/release/aeroswitch --version
+          else
+            ./.build/debug/aeroswitch --version
+          fi
+      
+      - name: Test help command
+        run: |
+          if [ "${{ matrix.config }}" = "release" ]; then
+            ./.build/release/aeroswitch --help
+          else
+            ./.build/debug/aeroswitch --help
+          fi
+      
+      - name: Verify binary size (release only)
+        if: matrix.config == 'release'
+        run: |
+          ls -lh .build/release/aeroswitch
+          # Ensure binary is reasonable size (less than 10MB)
+          SIZE=$(stat -f%z .build/release/aeroswitch)
+          if [ $SIZE -gt 10485760 ]; then
+            echo "Binary is too large: ${SIZE} bytes"
+            exit 1
+          fi

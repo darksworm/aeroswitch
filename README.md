@@ -37,24 +37,40 @@ The window switcher displays a clean, searchable list of all windows across work
 
 ### Installation
 
+#### Option 1: Homebrew (Recommended)
+
+```bash
+# Add the tap
+brew tap yourusername/aeroswitch
+
+# Install AeroSwitch
+brew install aeroswitch
+```
+
+#### Option 2: Pre-built Binary
+
+1. **Download the latest release:**
+   - Go to [Releases](https://github.com/yourusername/aeroswitch/releases)
+   - Download `aeroswitch-1.0.0-macos.tar.gz`
+
+2. **Extract and install:**
+   ```bash
+   tar -xzf aeroswitch-1.0.0-macos.tar.gz
+   sudo mv aeroswitch /usr/local/bin/
+   ```
+
+#### Option 3: Build from Source
+
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/your-username/aeroswitch.git
+   git clone https://github.com/yourusername/aeroswitch.git
    cd aeroswitch
    ```
 
-2. **Build the application:**
+2. **Build and install:**
    ```bash
-   swift build -c release
-   ```
-
-3. **Run AeroSwitch:**
-   ```bash
-   # Start as background process
-   ./.build/release/aeroswitch --background
-   
-   # Or activate existing instance
-   ./.build/release/aeroswitch --activate
+   make release
+   sudo make install
    ```
 
 ### Usage
