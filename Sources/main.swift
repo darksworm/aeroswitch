@@ -188,6 +188,7 @@ func activate(window e: WindowEntry, strategy: WorkspaceStrategy) throws {
     let strategy: WorkspaceStrategy
     private var activationTimer: Timer?
     private var statusItem: NSStatusItem?
+    private var keyEventMonitor: Any?
 
     init(strategy: WorkspaceStrategy, isBackgroundMode: Bool = true) {
         self.strategy = strategy
@@ -314,10 +315,34 @@ func activate(window e: WindowEntry, strategy: WorkspaceStrategy) throws {
         isVisible = true
         // Reset selection to first item to ensure proper scroll position
         selection = filtered.first
+        
+        // Start monitoring for arrow key events
+        keyEventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            if self.isVisible {
+                switch event.keyCode {
+                case 126: // Up arrow
+                    self.moveSelection(offset: -1)
+                    return nil // Consume the event
+                case 125: // Down arrow
+                    self.moveSelection(offset: 1)
+                    return nil // Consume the event
+                default:
+                    return event // Let other events pass through
+                }
+            }
+            return event
+        }
     }
     
     func hideWindow() {
         isVisible = false
+        
+        // Stop monitoring key events
+        if let monitor = keyEventMonitor {
+            NSEvent.removeMonitor(monitor)
+            keyEventMonitor = nil
+        }
+        
         DispatchQueue.main.async {
             NotificationCenter.default.post(name: NSNotification.Name("HideSwitcher"), object: nil)
         }
