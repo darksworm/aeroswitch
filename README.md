@@ -25,12 +25,6 @@ Start AeroSwitch as a background service that runs automatically on login:
 ```bash
 # Start the service and enable auto-start on login
 brew services start aeroswitch
-
-# Stop the service
-brew services stop aeroswitch
-
-# Check service status
-brew services list | grep aeroswitch
 ```
 
 Then configure the activation keybinding in your AeroSpace configuration (`~/.aerospace.toml`):
@@ -90,31 +84,6 @@ alt-space = 'exec-and-forget /opt/homebrew/bin/aeroswitch --activate'
 # Or use Cmd+Shift+Tab
 [mode.main.binding]
 cmd-shift-tab = 'exec-and-forget /opt/homebrew/bin/aeroswitch --activate'
-```
-
-### Workspace Strategies
-
-#### Summon Mode (Bring Windows to Current Workspace)
-```bash
-# Stop current service and start with summon mode
-brew services stop aeroswitch
-aeroswitch --background --summon &
-```
-
-Then use the same AeroSpace keybinding:
-```toml
-[mode.main.binding]
-cmd-tab = 'exec-and-forget /opt/homebrew/bin/aeroswitch --activate'
-```
-
-#### Both Modes Available
-Configure separate keybindings for both modes:
-```toml
-[mode.main.binding]
-# Focus mode: go to window's workspace
-cmd-tab = 'exec-and-forget /opt/homebrew/bin/aeroswitch --activate'
-# Summon mode: bring window to current workspace
-cmd-shift-tab = 'exec-and-forget /opt/homebrew/bin/aeroswitch --activate --summon'
 ```
 
 ### Command Line Options
@@ -195,21 +164,6 @@ swift build
 
 # Release build
 swift build -c release
-
-# Run tests (when available)
-swift test
-```
-
-### Project Structure
-
-```
-aeroswitch/
-├── Sources/
-│   └── main.swift          # Main application code
-├── Assets.xcassets/        # App icons and assets
-│   └── AppIcon.appiconset/
-├── Package.swift           # Swift Package Manager configuration
-└── README.md              # This file
 ```
 
 ## 🤝 Contributing
