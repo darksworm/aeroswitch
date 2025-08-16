@@ -398,8 +398,8 @@ func summonWindow(_ e: WindowEntry) throws {
         } else {
             filtered = all
                 .map { ($0, score($0, q)) }
-                .filter { $0.1 < Int.max/2 }
-                .sorted { $0.1 < $1.1 }
+                .filter { $0.1 < 1_000_000 }
+                .sorted { $0.1 > $1.1 }
                 .map { $0.0 }
         }
         if let sel = selection, !filtered.contains(sel) {
@@ -412,11 +412,11 @@ func summonWindow(_ e: WindowEntry) throws {
     // tiny scoring: prefer app prefix > app contains > title prefix > title contains
     func score(_ e: WindowEntry, _ q: String) -> Int {
         let a = e.app.lowercased(), t = e.title.lowercased()
-        if a.hasPrefix(q) { return 0 }
-        if a.contains(q)  { return 1 }
-        if t.hasPrefix(q) { return 2 }
-        if t.contains(q)  { return 3 }
-        return Int.max
+        if a.hasPrefix(q) { return (q.count * 2) * 100 } // Prioritize prefix matches, more specific prefixes are better
+        if t.hasPrefix(q) { return (q.count * 2) * 80 }
+        if a.contains(q)  { return q.count * 50 }
+        if t.contains(q)  { return q.count * 40 }
+        return 1_000_000 // Return a large number for no match
     }
 
     func confirmSelection() {
