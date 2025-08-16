@@ -9,28 +9,26 @@ let AEROSWITCH_VERSION = "1.0.0"
 // MARK: - CLI Arguments
 
 enum AppMode {
-    case background(WorkspaceStrategy)
-    case activate(WorkspaceStrategy)
+    case background
+    case summon
     case help
     case version
 }
 
 func parseArguments() -> AppMode {
     let args = CommandLine.arguments
-    let summon = args.contains("--summon")
-    let strategy: WorkspaceStrategy = summon ? .summon : .focus
     
     if args.contains("--version") || args.contains("-v") {
         return .version
     } else if args.contains("--help") || args.contains("-h") {
         return .help
     } else if args.contains("--background") {
-        return .background(strategy)
-    } else if args.contains("--activate") {
-        return .activate(strategy)
+        return .background
+    } else if args.contains("--summon") {
+        return .summon
     } else {
-        // Default behavior: try to activate existing, or start background if none exists
-        return checkForExistingInstance() ? .activate(strategy) : .background(strategy)
+        // Default behavior: try to summon existing, or start background if none exists
+        return checkForExistingInstance() ? .summon : .background
     }
 }
 
@@ -53,13 +51,18 @@ func printHelp() {
     
     Options:
         --background    Start as background helper process
-        --activate      Activate existing helper process
-        --summon        Use summon-workspace instead of workspace switching
+        --summon        Summon existing helper process
         --version, -v   Show version information
         --help, -h      Show this help message
     
+    Keyboard shortcuts when window switcher is open:
+        Enter           Focus selected window (switch to its workspace)
+        Alt+Enter       Summon selected window (move to current workspace)
+        ↑/↓ arrows      Navigate window list
+        Esc             Close window switcher
+    
     Default behavior:
-        If no flags are provided, will activate existing instance or start background process.
+        If no flags are provided, will summon existing instance or start background process.
     """)
 }
 
@@ -164,16 +167,21 @@ func focusedWorkspace() -> String? {
     (try? aero(["list-workspaces", "--focused", "--format", "%{workspace}"]))?.trimmingCharacters(in: .whitespacesAndNewlines)
 }
 
-enum WorkspaceStrategy { case focus, summon }
-
-func activate(window e: WindowEntry, strategy: WorkspaceStrategy) throws {
+func activateWindow(_ e: WindowEntry) throws {
+    // Go to the window's workspace if needed, then focus the window
     if focusedWorkspace() != e.workspace {
-        switch strategy {
-        case .focus:  _ = try aero(["workspace", e.workspace])
-        case .summon: _ = try aero(["summon-workspace", e.workspace])
-        }
+        _ = try aero(["workspace", e.workspace])
     }
     _ = try aero(["focus", "--window-id", String(e.id)])
+}
+
+func summonWindow(_ e: WindowEntry) throws {
+    // First focus the window (required for move-node-to-workspace to work)
+    _ = try aero(["focus", "--window-id", String(e.id)])
+    // Then move it to current workspace if it's not already here
+    if let currentWorkspace = focusedWorkspace(), currentWorkspace != e.workspace {
+        _ = try aero(["move-node-to-workspace", currentWorkspace])
+    }
 }
 
 // MARK: - View model
@@ -185,13 +193,11 @@ func activate(window e: WindowEntry, strategy: WorkspaceStrategy) throws {
     @Published var selection: WindowEntry?
     @Published var error: String?
     @Published var isVisible = false
-    let strategy: WorkspaceStrategy
     private var activationTimer: Timer?
     private var statusItem: NSStatusItem?
     private var keyEventMonitor: Any?
 
-    init(strategy: WorkspaceStrategy, isBackgroundMode: Bool = true) {
-        self.strategy = strategy
+    init(isBackgroundMode: Bool = true) {
         if isBackgroundMode {
             setupSystemTray()
             startActivationMonitoring()
@@ -316,7 +322,7 @@ func activate(window e: WindowEntry, strategy: WorkspaceStrategy) throws {
         // Reset selection to first item to ensure proper scroll position
         selection = filtered.first
         
-        // Start monitoring for arrow key events
+        // Start monitoring for arrow key and Alt+Enter events
         keyEventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
             if self.isVisible {
                 switch event.keyCode {
@@ -326,6 +332,14 @@ func activate(window e: WindowEntry, strategy: WorkspaceStrategy) throws {
                 case 125: // Down arrow
                     self.moveSelection(offset: 1)
                     return nil // Consume the event
+                case 36: // Return/Enter key
+                    if event.modifierFlags.contains(.option) { // Alt+Enter
+                        if let selection = self.selection {
+                            self.confirmSelectionFor(entry: selection, useSummon: true)
+                        }
+                        return nil // Consume the event
+                    }
+                    return event // Let normal Enter pass through
                 default:
                     return event // Let other events pass through
                 }
@@ -393,11 +407,15 @@ func activate(window e: WindowEntry, strategy: WorkspaceStrategy) throws {
         confirmSelectionFor(entry: s)
     }
     
-    func confirmSelectionFor(entry: WindowEntry) {
+    func confirmSelectionFor(entry: WindowEntry, useSummon: Bool = false) {
         // Execute aerospace commands on background thread
         Task {
             do {
-                try activate(window: entry, strategy: self.strategy)
+                if useSummon {
+                    try summonWindow(entry)
+                } else {
+                    try activateWindow(entry)
+                }
                 // Hide window after aerospace command completes
                 await MainActor.run {
                     self.hideWindow()
@@ -573,24 +591,24 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             printHelp()
             exit(0)
             
-        case .activate(let strategy):
-            // Try to activate existing instance
+        case .summon:
+            // Try to summon existing instance
             if sendActivationSignal() {
                 exit(0)
             } else {
                 print("No background instance found. Starting new background process...")
-                startBackgroundMode(strategy: strategy)
+                startBackgroundMode()
             }
             
-        case .background(let strategy):
+        case .background:
             // Start as background process
-            startBackgroundMode(strategy: strategy)
+            startBackgroundMode()
         }
     }
     
-    private func startBackgroundMode(strategy: WorkspaceStrategy) {
+    private func startBackgroundMode() {
         NSApp.setActivationPolicy(.accessory)
-        vm = VM(strategy: strategy, isBackgroundMode: true)
+        vm = VM(isBackgroundMode: true)
         
         // Listen for show window requests
         NotificationCenter.default.addObserver(
