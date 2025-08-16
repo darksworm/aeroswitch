@@ -36,11 +36,27 @@ jobs:
         with:
           xcode-version: latest-stable
       
-      - name: Build release binary
-        run: swift build -c release
+      - name: Build universal binary
+        run: |
+          # Build for both architectures
+          swift build -c release --arch arm64
+          swift build -c release --arch x86_64
+          
+          # Create universal binary
+          mkdir -p .build/universal-apple-macosx/release
+          lipo -create \
+            .build/arm64-apple-macosx/release/aeroswitch \
+            .build/x86_64-apple-macosx/release/aeroswitch \
+            -output .build/universal-apple-macosx/release/aeroswitch
+          
+          # Verify the universal binary
+          file .build/universal-apple-macosx/release/aeroswitch
+          lipo -info .build/universal-apple-macosx/release/aeroswitch
       
       - name: Create release archive
-        run: make archive
+        run: |
+          # Update Makefile to use universal binary
+          make archive BINARY_PATH=.build/universal-apple-macosx/release/aeroswitch
       
       - name: Upload release assets
         uses: softprops/action-gh-release@v2

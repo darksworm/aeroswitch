@@ -4,6 +4,7 @@ BINARY_NAME := aeroswitch
 VERSION := 1.0.0
 BUILD_DIR := .build
 INSTALL_PATH := /usr/local/bin
+BINARY_PATH := $(BUILD_DIR)/release/$(BINARY_NAME)
 
 .PHONY: all build release clean install uninstall test help
 
@@ -26,7 +27,7 @@ clean:
 ## Install to system
 install: release
 	install -d $(INSTALL_PATH)
-	install $(BUILD_DIR)/release/$(BINARY_NAME) $(INSTALL_PATH)/
+	install $(BINARY_PATH) $(INSTALL_PATH)/
 
 ## Uninstall from system
 uninstall:
@@ -39,7 +40,7 @@ test:
 ## Create release archive
 archive: release
 	@mkdir -p releases
-	@tar -czf releases/$(BINARY_NAME)-$(VERSION)-macos.tar.gz -C $(BUILD_DIR)/release $(BINARY_NAME)
+	@tar -czf releases/$(BINARY_NAME)-$(VERSION)-macos.tar.gz -C $(dir $(BINARY_PATH)) $(notdir $(BINARY_PATH))
 	@cd releases && shasum -a 256 $(BINARY_NAME)-$(VERSION)-macos.tar.gz > $(BINARY_NAME)-$(VERSION)-macos.tar.gz.sha256
 	@echo "Release archive created: releases/$(BINARY_NAME)-$(VERSION)-macos.tar.gz"
 
