@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/darksworm/aeroswitch/compare/v1.2.1...v1.3.0) (2025-08-16)
+
+
+### Features
+
+* implement cmd-tab behavior with real-time focus tracking ([812cf2b](https://github.com/darksworm/aeroswitch/commit/812cf2b30fb82fa8891ab46f5ccd615d3d768667))
+
 ## [1.2.1](https://github.com/darksworm/aeroswitch/compare/v1.2.0...v1.2.1) (2025-08-16)
 
 
