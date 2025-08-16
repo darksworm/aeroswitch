@@ -87,7 +87,7 @@ jobs:
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
-          repository: ${{ github.repository_owner }}/homebrew-aeroswitch
+          repository: ${{ github.repository_owner }}/homebrew-tap
           event-type: update-formula
           client-payload: |
             {
