@@ -180,12 +180,63 @@ func activate(window e: WindowEntry, strategy: WorkspaceStrategy) throws {
         reload()
     }
     
+    private func findAppIcon() -> String? {
+        // Look for app icons in common locations relative to the executable
+        let executablePath = Bundle.main.executablePath ?? ""
+        let executableDir = (executablePath as NSString).deletingLastPathComponent
+        let currentDir = FileManager.default.currentDirectoryPath
+        
+        let iconPaths = [
+            // In current working directory (most likely for development)
+            "\(currentDir)/Assets.xcassets/AppIcon.appiconset/32.png",
+            "\(currentDir)/Assets.xcassets/AppIcon.appiconset/16.png",
+            // Relative to executable
+            "\(executableDir)/../Assets.xcassets/AppIcon.appiconset/32.png",
+            "\(executableDir)/../Assets.xcassets/AppIcon.appiconset/16.png",
+            "\(executableDir)/Assets.xcassets/AppIcon.appiconset/32.png",
+            "\(executableDir)/Assets.xcassets/AppIcon.appiconset/16.png"
+        ]
+        
+        for path in iconPaths {
+            if FileManager.default.fileExists(atPath: path) {
+                return path
+            }
+        }
+        
+        return nil
+    }
+    
+    private func processIconForTray(_ originalIcon: NSImage) -> NSImage {
+        let size = NSSize(width: 18, height: 18)
+        let newImage = NSImage(size: size)
+        
+        newImage.lockFocus()
+        
+        // Clear the background to ensure transparency
+        NSColor.clear.set()
+        NSRect(origin: .zero, size: size).fill()
+        
+        // Draw the original icon, scaled to fit
+        let drawRect = NSRect(origin: .zero, size: size)
+        originalIcon.draw(in: drawRect, from: NSRect.zero, operation: .sourceOver, fraction: 1.0)
+        
+        newImage.unlockFocus()
+        
+        return newImage
+    }
+    
     private func setupSystemTray() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         
         if let button = statusItem?.button {
-            // Create a simple icon using SF Symbols
-            if let image = NSImage(systemSymbolName: "rectangle.3.group", accessibilityDescription: "AeroSwitch") {
+            // Try to load custom app icon, fallback to SF Symbol
+            if let iconPath = findAppIcon(),
+               let customIcon = NSImage(contentsOfFile: iconPath) {
+                // Process the image to ensure transparency and proper sizing
+                let processedIcon = processIconForTray(customIcon)
+                button.image = processedIcon
+                button.image?.isTemplate = false
+            } else if let image = NSImage(systemSymbolName: "rectangle.3.group", accessibilityDescription: "AeroSwitch") {
                 button.image = image
                 button.image?.isTemplate = true
             } else {
