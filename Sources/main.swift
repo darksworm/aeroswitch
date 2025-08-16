@@ -10,7 +10,7 @@ let AEROSWITCH_VERSION = "1.0.0"
 
 enum AppMode {
     case background
-    case summon
+    case activate
     case help
     case version
 }
@@ -24,11 +24,11 @@ func parseArguments() -> AppMode {
         return .help
     } else if args.contains("--background") {
         return .background
-    } else if args.contains("--summon") {
-        return .summon
+    } else if args.contains("--activate") {
+        return .activate
     } else {
-        // Default behavior: try to summon existing, or start background if none exists
-        return checkForExistingInstance() ? .summon : .background
+        // Default behavior: try to activate existing, or start background if none exists
+        return checkForExistingInstance() ? .activate : .background
     }
 }
 
@@ -51,18 +51,18 @@ func printHelp() {
     
     Options:
         --background    Start as background helper process
-        --summon        Summon existing helper process
+        --activate      Activate existing helper process
         --version, -v   Show version information
         --help, -h      Show this help message
     
     Keyboard shortcuts when window switcher is open:
-        Enter           Focus selected window (switch to its workspace)
+        Enter           Activate selected window (switch to its workspace)
         Alt+Enter       Summon selected window (move to current workspace)
         ↑/↓ arrows      Navigate window list
         Esc             Close window switcher
     
     Default behavior:
-        If no flags are provided, will summon existing instance or start background process.
+        If no flags are provided, will activate existing instance or start background process.
     """)
 }
 
@@ -596,8 +596,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             printHelp()
             exit(0)
             
-        case .summon:
-            // Try to summon existing instance
+        case .activate:
+            // Try to activate existing instance
             if sendActivationSignal() {
                 exit(0)
             } else {
