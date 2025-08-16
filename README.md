@@ -8,6 +8,40 @@
 
 AeroSwitch is designed for users who struggle with switching workspaces by number. Instead of memorizing workspace numbers, simply search for your applications by name and switch directly to any window across all workspaces.
 
+## 🚀 Quick Start
+
+### Installation
+
+```bash
+# Add the tap and install
+brew tap darksworm/aerospace
+brew install aeroswitch
+```
+
+### Setup AeroSpace
+
+Add these lines to your AeroSpace configuration (`~/.aerospace.toml`):
+
+```toml
+# Auto-start AeroSwitch when AeroSpace starts
+[[on-window-detected]]
+if.app-id = 'com.apple.loginwindow'
+run = '/opt/homebrew/bin/aeroswitch --background'
+
+# Summon window switcher with Cmd+Tab
+[mode.main.binding]
+cmd-tab = 'exec-and-forget /opt/homebrew/bin/aeroswitch --activate'
+```
+
+### Start Using
+
+1. **Restart AeroSpace** to load the new configuration
+2. **Press Cmd+Tab** to open the window switcher
+3. **Type to search** for windows by app name or title
+4. **Use arrow keys** to navigate, **Enter** to switch
+
+That's it! 🎉
+
 ## ✨ Features
 
 - **🔍 Smart Search**: Search windows by application name or window title
@@ -27,103 +61,42 @@ The window switcher displays a clean, searchable list of all windows across work
 - Current workspace indicator
 - Translucent background that adapts to your desktop
 
-## 🚀 Getting Started
+## 📋 Prerequisites
 
-### Prerequisites
-
-- macOS 13.0 or later
+- macOS 13.0 or later (supports both Intel and Apple Silicon)
 - [AeroSpace](https://github.com/nikitabobko/AeroSpace) window manager
 - Swift 6.1 or later (for building from source)
 
-## 🚀 Quick Start
+## ⚙️ Advanced Configuration
 
-### Step 1: Get AeroSwitch
+### Alternative Hotkeys
 
-#### Option A: Homebrew (Recommended)
-
-```bash
-# Add the tap
-brew tap darksworm/aerospace
-
-# Install AeroSwitch
-brew install aeroswitch
-```
-
-#### Option B: Download Pre-built Binary
-
-1. **Download the latest release:**
-   - Go to [Releases](https://github.com/darksworm/aeroswitch/releases)
-   - Download `aeroswitch-1.0.0-macos.tar.gz`
-
-2. **Extract and install:**
-   ```bash
-   tar -xzf aeroswitch-1.0.0-macos.tar.gz
-   sudo mv aeroswitch /usr/local/bin/
-   chmod +x /usr/local/bin/aeroswitch
-   ```
-
-#### Option C: Build from Source
-
-```bash
-git clone https://github.com/darksworm/aeroswitch.git
-cd aeroswitch
-make release
-sudo make install
-```
-
-### Step 2: Configure AeroSpace
-
-Add AeroSwitch to your AeroSpace configuration (`~/.aerospace.toml`):
+Don't want to override Cmd+Tab? Use these alternatives:
 
 ```toml
-# Start AeroSwitch as a background service
-[[on-window-detected]]
-if.app-id = 'com.apple.loginwindow'
-run = '/opt/homebrew/bin/aeroswitch --background'
-
-# Bind a hotkey to summon the window switcher
-[mode.main.binding]
-cmd-tab = 'exec-and-forget /opt/homebrew/bin/aeroswitch --activate'
-```
-
-> **Note**: If you installed manually instead of Homebrew, use `/usr/local/bin/aeroswitch` in the paths above.
-
-### Step 3: Start Using
-
-1. **Restart AeroSpace** to load the new configuration
-2. **Press Cmd+Tab** (or your chosen hotkey) to open the window switcher
-3. **Type to search** for windows by app name or title
-4. **Press Enter** or click to switch to the selected window
-
-That's it! 🎉
-
-## ⚙️ Configuration Examples
-
-### Alternative AeroSpace Setups
-
-#### Don't Override Cmd+Tab
-If you prefer to keep macOS native Cmd+Tab:
-```toml
-# Use Alt+Space or Cmd+Shift+Tab instead
+# Use Alt+Space instead
 [mode.main.binding]
 alt-space = 'exec-and-forget /opt/homebrew/bin/aeroswitch --activate'
-# or
+
+# Or use Cmd+Shift+Tab
+[mode.main.binding]
 cmd-shift-tab = 'exec-and-forget /opt/homebrew/bin/aeroswitch --activate'
 ```
 
+### Workspace Strategies
+
 #### Summon Mode (Bring Windows to Current Workspace)
 ```toml
-# Start with summon mode
+# Start with summon mode - brings windows to you
 [[on-window-detected]]
 if.app-id = 'com.apple.loginwindow'
 run = '/opt/homebrew/bin/aeroswitch --background --summon'
 
-# All windows will be brought to your current workspace
 [mode.main.binding]
 cmd-tab = 'exec-and-forget /opt/homebrew/bin/aeroswitch --activate'
 ```
 
-#### Both Focus and Summon Modes
+#### Both Modes Available
 ```toml
 # Default background service
 [[on-window-detected]]
@@ -133,13 +106,11 @@ run = '/opt/homebrew/bin/aeroswitch --background'
 [mode.main.binding]
 # Focus mode: go to window's workspace
 cmd-tab = 'exec-and-forget /opt/homebrew/bin/aeroswitch --activate'
-# Summon mode: bring window here
+# Summon mode: bring window to current workspace
 cmd-shift-tab = 'exec-and-forget /opt/homebrew/bin/aeroswitch --activate --summon'
 ```
 
-### Usage
-
-#### Command Line Options
+### Command Line Options
 
 ```bash
 aeroswitch [OPTIONS]
@@ -154,35 +125,46 @@ Default behavior:
   If no flags are provided, will activate existing instance or start background process.
 ```
 
-#### Keyboard Shortcuts
+### Keyboard Shortcuts
 
 - **Search**: Start typing to filter windows
 - **Navigate**: Use `↑` and `↓` arrow keys to select windows
 - **Activate**: Press `Enter` to switch to selected window
 - **Cancel**: Press `Esc` to close the switcher
 
-#### System Tray
+### System Tray
 
 Right-click the system tray icon for options:
 - **Show Window Switcher**: Open the window switcher manually
 - **Quit AeroSwitch**: Exit the application
 
-## 🔧 Advanced Installation
+## 🔧 Alternative Installation Methods
 
-### Manual Build Options
+### Option A: Download Pre-built Binary
+
+1. **Download the latest release:**
+   - Go to [Releases](https://github.com/darksworm/aeroswitch/releases)
+   - Download `aeroswitch-1.0.0-macos.tar.gz`
+
+2. **Extract and install:**
+   ```bash
+   tar -xzf aeroswitch-1.0.0-macos.tar.gz
+   sudo mv aeroswitch /usr/local/bin/
+   chmod +x /usr/local/bin/aeroswitch
+   ```
+
+### Option B: Build from Source
 
 ```bash
-# Using Makefile
-make release        # Build release binary
-make install        # Install to /usr/local/bin (requires sudo)
-make archive        # Create release archive
-
-# Using Swift directly  
-swift build -c release
-sudo cp .build/release/aeroswitch /usr/local/bin/
+git clone https://github.com/darksworm/aeroswitch.git
+cd aeroswitch
+make release
+sudo make install
 ```
 
-## 💡 Tips
+> **Note**: If you installed manually instead of Homebrew, use `/usr/local/bin/aeroswitch` instead of `/opt/homebrew/bin/aeroswitch` in your AeroSpace configuration.
+
+## 💡 Tips & Troubleshooting
 
 ### Workspace Strategies
 
@@ -259,7 +241,7 @@ This project is licensed under the GPL v3 License - see the [LICENSE](LICENSE) f
 
 If you encounter issues or have questions:
 
-1. Check the [Issues](https://github.com/your-username/aeroswitch/issues) page
+1. Check the [Issues](https://github.com/darksworm/aeroswitch/issues) page
 2. Create a new issue with detailed information about your problem
 3. Include your macOS version, AeroSpace version, and steps to reproduce
 
