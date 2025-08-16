@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
       - name: release
         id: release
@@ -27,8 +28,9 @@ jobs:
           extra-files: '["VERSION"]'
 
   publish:
-    needs: release-please
-    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    needs:
+      - release-please
+    if: ${{ needs.release-please.outputs.release_created }}
     runs-on: macos-latest
     steps:
       - name: Checkout code
@@ -58,7 +60,7 @@ jobs:
       
       - name: Create release archive
         run: |
-          VERSION=$(echo ${{ github.ref_name }} | sed 's/^v//')
+          VERSION=$(echo ${{ needs.release-please.outputs.tag_name }} | sed 's/^v//')
           make archive BINARY_PATH=.build/universal-apple-macosx/release/aeroswitch VERSION=${VERSION}
       
       - name: Upload release assets
@@ -67,18 +69,18 @@ jobs:
           files: |
             releases/aeroswitch-*.tar.gz
             releases/aeroswitch-*.sha256
-          tag_name: ${{ github.ref_name }}
+          tag_name: ${{ needs.release-please.outputs.tag_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Get release info
         id: release_info
         run: |
-          VERSION=$(echo ${{ github.ref_name }} | sed 's/^v//')
+          VERSION=$(echo ${{ needs.release-please.outputs.tag_name }} | sed 's/^v//')
           ARCHIVE_PATH="releases/aeroswitch-${VERSION}-macos.tar.gz"
           SHA256=$(cat "releases/aeroswitch-${VERSION}-macos.tar.gz.sha256" | cut -d' ' -f1)
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "archive_url=https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/aeroswitch-${VERSION}-macos.tar.gz" >> $GITHUB_OUTPUT
+          echo "archive_url=https://github.com/${{ github.repository }}/releases/download/${{ needs.release-please.outputs.tag_name }}/aeroswitch-${VERSION}-macos.tar.gz" >> $GITHUB_OUTPUT
           echo "sha256=${SHA256}" >> $GITHUB_OUTPUT
       
       - name: Update Homebrew formula
