@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.2.0](https://github.com/darksworm/aeroswitch/compare/v1.1.0...v1.2.0) (2025-08-16)
+
+
+### Features
+
+* improve search scoring ([48d7a67](https://github.com/darksworm/aeroswitch/commit/48d7a67580a0c2474bcc077be3c7bcb064b5907e))
+
+
+### Bug Fixes
+
+* **ci:** configure release-please to use version file ([76d6b7a](https://github.com/darksworm/aeroswitch/commit/76d6b7adad7d20e41690e6941c073230afe23bb3))
+
 ## [1.1.0](https://github.com/darksworm/aeroswitch/compare/v1.0.1...v1.1.0) (2025-08-16)
 
 
