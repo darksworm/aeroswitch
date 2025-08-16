@@ -1,6 +1,7 @@
 import SwiftUI
 import AppKit
 import Foundation
+import ApplicationServices
 
 // MARK: - Version Info
 
@@ -151,10 +152,26 @@ func getAppIcon(for appName: String) -> NSImage? {
 func listWindows(vm: VM) async throws -> [WindowEntry] {
     let fmt = "%{window-id}%{tab}%{workspace}%{tab}%{monitor-id}%{tab}%{app-name}%{tab}%{window-title}%{newline}"
     let raw = try aero(["list-windows", "--all", "--format", fmt])
-    return raw.split(separator: "\n").compactMap { line in
+    
+    // Get current window to exclude it from the list
+    let currentWindowId = vm.currentWindowId
+    
+    return raw.split(separator: "\n").compactMap { line -> WindowEntry? in
         let parts = line.split(separator: "\t", maxSplits: 4, omittingEmptySubsequences: false)
         guard parts.count == 5, let id = Int(parts[0]) else { return nil }
+        
+        // Skip the currently focused window
+        if let currentId = currentWindowId, id == currentId {
+            return nil
+        }
+        
         let appName = String(parts[3])
+        
+        // Skip AeroSwitch windows
+        if appName.lowercased() == "aeroswitch" {
+            return nil
+        }
+        
         if let icon = vm.iconCache[appName] {
             return WindowEntry(id: id,
                                workspace: String(parts[1]),
@@ -176,6 +193,11 @@ func listWindows(vm: VM) async throws -> [WindowEntry] {
 
 func focusedWorkspace() -> String? {
     (try? aero(["list-workspaces", "--focused", "--format", "%{workspace}"]))?.trimmingCharacters(in: .whitespacesAndNewlines)
+}
+
+func focusedWindow() -> Int? {
+    guard let raw = try? aero(["list-windows", "--focused", "--format", "%{window-id}"]) else { return nil }
+    return Int(raw.trimmingCharacters(in: .whitespacesAndNewlines))
 }
 
 func activateWindow(_ e: WindowEntry) throws {
@@ -210,14 +232,18 @@ func summonWindow(_ e: WindowEntry) throws {
     @Published var error: String?
     @Published var isVisible = false
     private var activationTimer: Timer?
+    private var axObserver: AXObserver?
     private var statusItem: NSStatusItem?
     private var keyEventMonitor: Any?
+    fileprivate var currentWindowId: Int?
+    fileprivate var previousWindowId: Int?
     fileprivate var iconCache: [String: NSImage] = [:]
 
     init(isBackgroundMode: Bool = true) {
         if isBackgroundMode {
             setupSystemTray()
             startActivationMonitoring()
+            startFocusTracking()
         }
         Task {
             await reload()
@@ -321,6 +347,82 @@ func summonWindow(_ e: WindowEntry) throws {
         }
     }
     
+    private func startFocusTracking() {
+        // Initialize current window
+        currentWindowId = focusedWindow()
+        print("Initial window ID: \(currentWindowId ?? -1)")
+        
+        // Set up AXObserver for real-time focus tracking
+        setupAXObserver()
+    }
+    
+    private func setupAXObserver() {
+        let systemWideElement = AXUIElementCreateSystemWide()
+        
+        // Create observer callback
+        let callback: AXObserverCallback = { observer, element, notification, refcon in
+            if let vm = unsafeBitCast(refcon, to: VM?.self) {
+                // Handle immediately for fastest response
+                if Thread.isMainThread {
+                    vm.handleFocusChangeSync()
+                } else {
+                    DispatchQueue.main.sync {
+                        vm.handleFocusChangeSync()
+                    }
+                }
+            }
+        }
+        
+        // Create observer
+        let result = AXObserverCreate(getpid(), callback, &axObserver)
+        guard result == .success, let observer = axObserver else {
+            print("Failed to create AXObserver, falling back to polling")
+            fallbackToPolling()
+            return
+        }
+        
+        // Add notification for focused window changes
+        let addResult = AXObserverAddNotification(
+            observer,
+            systemWideElement,
+            kAXFocusedWindowChangedNotification as CFString,
+            unsafeBitCast(self, to: UnsafeMutableRawPointer.self)
+        )
+        
+        if addResult == .success {
+            // Add observer to run loop
+            CFRunLoopAddSource(
+                CFRunLoopGetCurrent(),
+                AXObserverGetRunLoopSource(observer),
+                .defaultMode
+            )
+            print("✅ AXObserver setup successful")
+        } else {
+            print("Failed to add AXObserver notification, falling back to polling")
+            fallbackToPolling()
+        }
+    }
+    
+    private func fallbackToPolling() {
+        Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+            Task { @MainActor in
+                self.checkFocusChange()
+            }
+        }
+    }
+    
+    private func handleFocusChangeSync() {
+        guard !isVisible else { return }
+        
+        let newCurrentId = focusedWindow()
+        
+        if let current = newCurrentId, current != self.currentWindowId {
+            print("🎯 AX Focus change: \(self.currentWindowId ?? -1) -> \(current)")
+            self.previousWindowId = self.currentWindowId
+            self.currentWindowId = current
+        }
+    }
+    
     private func checkForActivationSignal() {
         guard let data = try? Data(contentsOf: URL(fileURLWithPath: ACTIVATION_PIPE)),
               let content = String(data: data, encoding: .utf8),
@@ -335,11 +437,20 @@ func summonWindow(_ e: WindowEntry) throws {
     }
     
     func showWindow() async {
+        print("=== Showing window ===")
+        print("Current window ID: \(currentWindowId ?? -1)")
+        print("Previous window ID: \(previousWindowId ?? -1)")
+        
         await reload()
         query = ""
         isVisible = true
-        // Reset selection to first item to ensure proper scroll position
-        selection = filtered.first
+        
+        print("Total windows after reload: \(all.count)")
+        print("Filtered windows: \(filtered.count)")
+        print("Window IDs in list: \(filtered.map { $0.id })")
+        
+        // Select previously active window if available, otherwise first item
+        selectPreviouslyActiveWindow()
         
         // Start monitoring for arrow key and Alt+Enter events
         keyEventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
@@ -403,9 +514,9 @@ func summonWindow(_ e: WindowEntry) throws {
                 .map { $0.0 }
         }
         if let sel = selection, !filtered.contains(sel) {
-            selection = filtered.first
+            selectPreviouslyActiveWindow()
         } else if selection == nil {
-            selection = filtered.first
+            selectPreviouslyActiveWindow()
         }
     }
 
@@ -453,6 +564,32 @@ func summonWindow(_ e: WindowEntry) throws {
         let currentIndex = selection.flatMap { filtered.firstIndex(of: $0) } ?? 0
         let newIndex = (currentIndex + offset + filtered.count) % filtered.count
         selection = filtered[newIndex]
+    }
+    
+    private func checkFocusChange() {
+        // Don't track focus changes while switcher is visible
+        guard !isVisible else { return }
+        
+        let newCurrentId = focusedWindow()
+        
+        if let current = newCurrentId, current != self.currentWindowId {
+            print("📊 Polling focus change: \(self.currentWindowId ?? -1) -> \(current)")
+            self.previousWindowId = self.currentWindowId
+            self.currentWindowId = current
+        }
+    }
+    
+    private func selectPreviouslyActiveWindow() {
+        // Try to find the previously active window in filtered list
+        if let prevId = previousWindowId,
+           let prevWindow = filtered.first(where: { $0.id == prevId }) {
+            selection = prevWindow
+            print("Selected previous window: \(prevId)")
+        } else {
+            // Fallback: select first available window (current window already filtered out)
+            selection = filtered.first
+            print("No previous window found, selected first: \(selection?.id ?? -1)")
+        }
     }
 }
 
