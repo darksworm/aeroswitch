@@ -38,7 +38,7 @@ cmd-tab = 'exec-and-forget /opt/homebrew/bin/aeroswitch --activate'
 1. **Restart AeroSpace** to load the new configuration
 2. **Press Cmd+Tab** to open the window switcher
 3. **Type to search** for windows by app name or title
-4. **Use arrow keys** to navigate, **Enter** to switch
+4. **Use arrow keys** to navigate, **Enter** to switch, **Alt+Enter** to summon
 
 That's it! 🎉
 
@@ -132,6 +132,7 @@ Default behavior:
 - **Search**: Start typing to filter windows
 - **Navigate**: Use `↑` and `↓` arrow keys to select windows
 - **Activate**: Press `Enter` to switch to selected window
+- **Summon**: Press `Alt+Enter` to bring window to current workspace  
 - **Cancel**: Press `Esc` to close the switcher
 
 ### System Tray
