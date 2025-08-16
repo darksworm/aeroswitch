@@ -55,6 +55,8 @@ That's it! 🎉
 
 ## 🖼️ Screenshot
 
+![AeroSwitch Demo](screenshots/aeroswitch-demo.png)
+
 The window switcher displays a clean, searchable list of all windows across workspaces with:
 - Application icons for easy visual identification
 - App name and window title
