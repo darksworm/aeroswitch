@@ -102,6 +102,28 @@ struct WindowEntry: Identifiable, Hashable {
     let monitor: String
     let app: String
     let title: String
+    let icon: NSImage?
+}
+
+func getAppIcon(for appName: String) -> NSImage? {
+    let workspace = NSWorkspace.shared
+    
+    // Try to find the app by name
+    if let appURL = workspace.urlForApplication(withBundleIdentifier: appName) ??
+                   workspace.urlForApplication(withBundleIdentifier: "com.apple.\(appName.lowercased())") ??
+                   workspace.urlForApplication(withBundleIdentifier: "com.\(appName.lowercased())") {
+        return workspace.icon(forFile: appURL.path)
+    }
+    
+    // Try to find by display name
+    let runningApps = workspace.runningApplications
+    if let app = runningApps.first(where: { $0.localizedName?.lowercased() == appName.lowercased() }),
+       let bundleURL = app.bundleURL {
+        return workspace.icon(forFile: bundleURL.path)
+    }
+    
+    // Fallback: try generic app icon
+    return NSImage(systemSymbolName: "app.fill", accessibilityDescription: "App")
 }
 
 func listWindows() throws -> [WindowEntry] {
@@ -110,11 +132,13 @@ func listWindows() throws -> [WindowEntry] {
     return raw.split(separator: "\n").compactMap { line in
         let parts = line.split(separator: "\t", maxSplits: 4, omittingEmptySubsequences: false)
         guard parts.count == 5, let id = Int(parts[0]) else { return nil }
+        let appName = String(parts[3])
         return WindowEntry(id: id,
                            workspace: String(parts[1]),
                            monitor: String(parts[2]),
-                           app: String(parts[3]),
-                           title: String(parts[4]))
+                           app: appName,
+                           title: String(parts[4]),
+                           icon: getAppIcon(for: appName))
     }
 }
 
@@ -271,7 +295,7 @@ func activate(window e: WindowEntry, strategy: WorkspaceStrategy) throws {
     
     func confirmSelectionFor(entry: WindowEntry) {
         // Execute aerospace commands on background thread
-        Task.detached {
+        Task {
             do {
                 try activate(window: entry, strategy: self.strategy)
                 // Hide window after aerospace command completes
@@ -313,13 +337,29 @@ struct WindowAccessor: NSViewRepresentable {
 struct Row: View {
     let e: WindowEntry
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            HStack {
-                Text(e.app).font(.headline)
-                Spacer()
-                Text("ws:\(e.workspace)").font(.caption).opacity(0.7)
+        HStack(spacing: 12) {
+            // App Icon
+            if let icon = e.icon {
+                Image(nsImage: icon)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 32, height: 32)
+                    .cornerRadius(6)
+            } else {
+                Image(systemName: "app.fill")
+                    .frame(width: 32, height: 32)
+                    .foregroundColor(.secondary)
             }
-            Text(e.title).lineLimit(1).font(.subheadline).opacity(0.9)
+            
+            // App info
+            VStack(alignment: .leading, spacing: 2) {
+                HStack {
+                    Text(e.app).font(.headline)
+                    Spacer()
+                    Text("ws:\(e.workspace)").font(.caption).opacity(0.7)
+                }
+                Text(e.title).lineLimit(1).font(.subheadline).opacity(0.9)
+            }
         }.padding(.vertical, 6)
     }
 }
