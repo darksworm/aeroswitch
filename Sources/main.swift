@@ -196,9 +196,15 @@ func activate(window e: WindowEntry, strategy: WorkspaceStrategy) throws {
         
         let menu = NSMenu()
         
-        menu.addItem(NSMenuItem(title: "Show Window Switcher", action: #selector(showWindowFromTray), keyEquivalent: ""))
+        let showItem = NSMenuItem(title: "Show Window Switcher", action: #selector(showWindowFromTray), keyEquivalent: "")
+        showItem.target = self
+        menu.addItem(showItem)
+        
         menu.addItem(NSMenuItem.separator())
-        menu.addItem(NSMenuItem(title: "Quit AeroSwitch", action: #selector(quitApp), keyEquivalent: "q"))
+        
+        let quitItem = NSMenuItem(title: "Quit AeroSwitch", action: #selector(quitApp), keyEquivalent: "q")
+        quitItem.target = self
+        menu.addItem(quitItem)
         
         statusItem?.menu = menu
     }
