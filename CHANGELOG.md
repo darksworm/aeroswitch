@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/darksworm/aeroswitch/compare/v1.0.0...v1.0.1) (2025-08-16)
+
+
+### Bug Fixes
+
+* proper repository for dispatch ([7c3057f](https://github.com/darksworm/aeroswitch/commit/7c3057fca2d520f0fad08cf480bea44d257d2a29))
+
 ## 1.0.0 (2025-08-16)
 
 
