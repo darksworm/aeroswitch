@@ -176,21 +176,17 @@ func activateWindow(_ e: WindowEntry) throws {
 }
 
 func summonWindow(_ e: WindowEntry) throws {
-    // Capture the current workspace before focusing the window
-    guard let targetWorkspace = focusedWorkspace() else { return }
+    // Get the current workspace
+    guard let currentWorkspace = focusedWorkspace() else { return }
     
     // Skip if window is already in current workspace
-    if e.workspace == targetWorkspace { 
+    if e.workspace == currentWorkspace { 
         _ = try aero(["focus", "--window-id", String(e.id)])
         return 
     }
     
-    // Focus the window first (required for move-node-to-workspace to work)
-    _ = try aero(["focus", "--window-id", String(e.id)])
-    // Move it to the target workspace
-    _ = try aero(["move-node-to-workspace", targetWorkspace])
-    // Switch back to the target workspace and focus the moved window
-    _ = try aero(["workspace", targetWorkspace])
+    // Move the window to current workspace and focus it
+    _ = try aero(["move-node-to-workspace", "--window-id", String(e.id), currentWorkspace])
     _ = try aero(["focus", "--window-id", String(e.id)])
 }
 
